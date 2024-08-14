@@ -5,3 +5,4 @@ markdownify
 colorama
 tiktoken
 simple-term-menu
+streamlit

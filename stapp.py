@@ -1,4 +1,3 @@
-# TODO add context length counter
 # TODO add ability to set the job url through url parameter
 # TODO add readme and bookmarklet
 # TODO add ability to provide job description as text
@@ -8,7 +7,6 @@ from networkx import draw
 import streamlit as st
 import yaml
 from Job import *
-from Embedder import *
 from LLM import *
 from Utilities import *
 
@@ -17,14 +15,15 @@ def first_run():
     st.session_state.first_run = False
     
     # Load the config        
-    with open("./openrouter.yml", "r") as f:
+    with open("./llm_configurations/openrouter.yml", "r") as f:
         st.session_state.config = yaml.safe_load(f.read())
-    
-    # Initialise the objects
+        
+    # Initialise the key objects and session variables
     if "job_url" in st.query_params:
         st.session_state.job_url = st.query_params.job_url
     else:
-        st.session_state.job_url = "https://www.linkedin.com/jobs/view/3994601016"
+        st.session_state.job_url = None
+    
     st.session_state.message_log = []
     
 def draw_page():
@@ -123,7 +122,7 @@ def init_objects():
     
     conf = st.session_state.config["llm"]
     pt = PromptTemplater("./prompts")
-    st.session_state.llm = LLMwithDocStore(
+    st.session_state.llm = LLMwithKnowledge(
         model_name=conf["model_name"],
         url=conf["url"],
         system_prompt=conf["system_prompt"],

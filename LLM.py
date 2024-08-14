@@ -4,7 +4,6 @@ from typing import Any
 from haystack.dataclasses import ChatMessage, ChatRole
 from colorama import Fore
 from haystack.components.builders import PromptBuilder
-from Embedder import DocumentStore
 from Utilities import *
 import json
 from haystack.utils import Secret
