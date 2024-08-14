@@ -1,0 +1,81 @@
+{
+	"name": "Data Science (Python and R) with Ollama server",
+    "dockerComposeFile": "./docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "latest"
+		}
+		, "ghcr.io/rocker-org/devcontainer-features/r-apt:latest": {
+			"vscodeRSupport": "full",
+			"installDevTools": true,
+			"installRadian": true,
+			"installRMarkdown": true,
+			"installVscDebugger": true
+		}
+		, "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+			"packages": "r-cran-data.table,r-cran-tidyverse,curl,nano,micro,htop,neofetch,bat",
+			"upgradePackages": true
+		}
+        , "ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": "true",
+            "configureZshAsDefaultShell": "true",
+            "installOhMyZsh": "true",
+            //"installOhMyZshConfig": "true",
+			"upgradePackages": "true"
+		}
+		, "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {}
+	},
+	"overrideFeatureInstallOrder": [
+		"ghcr.io/rocker-org/devcontainer-features/r-apt"
+	],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "pip install ipykernel ipywidgets && if [ -f requirements.txt* ]; then pip install -r requirements.txt; else pip install pandas numpy matplotlib seaborn scikit-learn; fi",
+	// "postCreateCommand": "pip install ipykernel ipywidgets && pip install -r requirements.txt",
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"terminal.integrated.shell.linux": "/bin/fish",
+				"[python]": {
+					"defaultInterpreterPath": "/opt/conda/bin/python",
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnType": true,
+					"editor.formatOnSave": true
+				},
+				"[jupyter]": {
+					"themeMatplotlibPlots": true,
+					"widgetScriptSources": [
+						"unpkg.com",
+						"jsdelivr.com"
+					]
+				},
+				"[r]": {
+					"rterm.linux": "/usr/local/bin/radian",
+					"r.bracketedPaste": true
+				}
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-toolsai.jupyter",
+				"ms-python.python",
+				"reditorsupport.r",
+				"njpwerner.autodocstring",
+				"frhtylcn.pythonsnippets",
+				"almenon.arepl",
+				"aaron-bond.better-comments",
+				"kevinrose.vsc-python-indent",
+				"usernamehw.errorlens",
+				"gruntfuggly.todo-tree"
+			]
+		}
+	},
+	// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}

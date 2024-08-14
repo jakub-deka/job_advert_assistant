@@ -1,0 +1,7 @@
+bs4
+haystack-ai
+Ollama-haystack
+markdownify
+colorama
+tiktoken
+simple-term-menu
