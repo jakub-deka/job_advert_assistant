@@ -1,0 +1,5 @@
+display_name: qwen2
+model_name: openrouter/qwen/qwen-2-7b-instruct:free
+system_prompt: "You are an expert at analysing job adverts and you follow every instruction given."
+prompt_template_path: "./prompts/rag.md"
+url: "https://openrouter.ai/api/v1"

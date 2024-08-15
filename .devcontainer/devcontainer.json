@@ -44,7 +44,7 @@
 			"settings": {
 				"terminal.integrated.shell.linux": "/bin/fish",
 				"[python]": {
-					"defaultInterpreterPath": "/opt/conda/bin/python",
+					"defaultInterpreterPath": "/usr/local/bin/python",
 					"editor.defaultFormatter": "ms-python.black-formatter",
 					"editor.formatOnType": true,
 					"editor.formatOnSave": true
@@ -72,7 +72,8 @@
 				"aaron-bond.better-comments",
 				"kevinrose.vsc-python-indent",
 				"usernamehw.errorlens",
-				"gruntfuggly.todo-tree"
+				"gruntfuggly.todo-tree",
+				"ms-python.black-formatter"
 			]
 		}
 	},
