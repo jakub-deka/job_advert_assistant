@@ -34,14 +34,7 @@ def first_run():
 
     # Load the config
     st.session_state.config = load_config("./llm_configurations/llama3.1-8b-free.yml")
-
-    st.session_state.llm = LLMwithKnowledge(
-        model_name=st.session_state.config["model_name"],
-        url=st.session_state.config["url"],
-        system_prompt=st.session_state.config["system_prompt"],
-        prompt_template=st.session_state.pt.get_prompt("rag"),
-        knowledge={},
-    )
+    initialise_llm()
 
     # Initialise the key objects and session variables
     if "job_url" in st.query_params:
@@ -49,6 +42,21 @@ def first_run():
         initialise_job()
 
     st.session_state.message_log = []
+
+
+def initialise_llm():
+    if "llm" in st.session_state:
+        old_knowledge = st.session_state.llm.knowledge
+    else:
+        old_knowledge = {}
+
+    st.session_state.llm = LLMwithKnowledge(
+        model_name=st.session_state.config["model_name"],
+        url=st.session_state.config["url"],
+        system_prompt=st.session_state.config["system_prompt"],
+        prompt_template=st.session_state.pt.get_prompt("rag"),
+        knowledge=old_knowledge,
+    )
 
 
 def initialise_job():
@@ -63,7 +71,9 @@ def draw_config_buttons():
     config_path = Path("./llm_configurations")
     configs = config_path.glob("*.yml")
     for c in configs:
-        st.button()
+        if st.button(c):
+            st.session_state.config = load_config(c)
+            initialise_llm()
 
 
 def draw_page():
