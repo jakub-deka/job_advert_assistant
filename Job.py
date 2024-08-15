@@ -103,7 +103,10 @@ class Job:
         fetch_pipeline.add_component(
             "fetch", LinkContentFetcher(user_agents=[chrome_user_agent])
         )
-        fetch_pipeline.add_component("clean_html", HtmlCleaner(strip_selectors=[]))
+        fetch_pipeline.add_component(
+            "clean_html",
+            HtmlCleaner(strip_selectors=["script", "style", "link", "noscript"]),
+        )
         fetch_pipeline.add_component("to_md", HtmlToMarkdown(md_convert=["meta"]))
         fetch_pipeline.add_component(
             "remove_long_strings", RemoveLongStrings(threshold=31)

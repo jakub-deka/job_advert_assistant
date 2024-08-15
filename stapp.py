@@ -17,6 +17,12 @@ def get_page_content(content_name: str):
         return f.read()
 
 
+def load_config(path: str):
+    with open(path, "r") as f:
+        res = yaml.safe_load(f.read())
+    return res
+
+
 # endregion
 
 
@@ -27,8 +33,7 @@ def first_run():
     st.session_state.pt = PromptTemplater("./prompts")
 
     # Load the config
-    with open("./llm_configurations/llama3.1-8b-free.yml", "r") as f:
-        st.session_state.config = yaml.safe_load(f.read())
+    st.session_state.config = load_config("./llm_configurations/llama3.1-8b-free.yml")
 
     st.session_state.llm = LLMwithKnowledge(
         model_name=st.session_state.config["model_name"],
@@ -54,6 +59,13 @@ def initialise_job():
         )
 
 
+def draw_config_buttons():
+    config_path = Path("./llm_configurations")
+    configs = config_path.glob("*.yml")
+    for c in configs:
+        st.button()
+
+
 def draw_page():
     with open("style.css", "r") as f:
         css = f"<style>{f.read()}</style>"
@@ -67,8 +79,7 @@ def draw_page():
             st.markdown("# Current config")
             st.write(st.session_state.config)
 
-        if "job" in st.session_state:
-            st.markdown(st.session_state.job.url)
+        draw_config_buttons()
 
     with st.form("joburl"):
         job_url = st.session_state.job_url if "job_url" in st.session_state else ""
