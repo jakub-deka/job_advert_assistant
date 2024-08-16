@@ -1,6 +1,7 @@
 # TODO add readme and bookmarklet
 # TODO add ability to provide job description as text
 # TODO make a favicon
+# TODO Fix the issue with adding information to context. The form needs to clear after it is submitted.
 from math import exp
 from re import L
 from click import prompt
@@ -172,7 +173,7 @@ def draw_page():
 
     with c3:
         with st.popover(label="Add information to context", use_container_width=True):
-            with st.form("addcontext", border=False):
+            with st.form("addcontext", border=False, clear_on_submit=True):
                 additional_info_label = st.text_input("Label")
                 additional_info = st.text_area(
                     label="Information to add to LLM context", height=200
