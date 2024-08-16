@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 import re
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
+from LLM import *
 
 
 # region components
@@ -14,7 +15,7 @@ class HtmlCleaner:
     def __init__(
         self,
         strip_selectors: list[str] = ["script", "style", "link", "noscript"],
-        soup_parser: str = "lxml",
+        soup_parser: str = "html.parser",
     ):
         self.strip_selectors = strip_selectors
         self.soup_parser = soup_parser
@@ -146,3 +147,6 @@ class Job:
         self._url = value
         pipeline = self.construct_fetch_pipeline()
         self.job_description, self.success = self.run_pipeline(pipeline)
+
+    def __str__(self) -> str:
+        return json.dumps({"url": self.url, "job_description": self.job_description})

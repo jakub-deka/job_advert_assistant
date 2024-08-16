@@ -4,11 +4,13 @@
 # TODO add switcher for models
 # TODO make a favicon
 # TODO add controls for more models
+from click import prompt
 import streamlit as st
 import yaml
 from Job import *
 from LLM import *
 from Utilities import *
+import base64
 
 
 # region Utilities
@@ -23,18 +25,47 @@ def load_config(path: str):
     return res
 
 
+def set_bg_hack(main_bg):
+    """
+    A function to unpack an image from root folder and set as bg.
+
+    Returns
+    -------
+    The background.
+    """
+    # set bg name
+    main_bg_ext = "png"
+
+    st.markdown(
+        f"""
+         <style>
+         .stApp {{
+             background: url(data:image/{main_bg_ext};base64,{base64.b64encode(open(main_bg, "rb").read()).decode()});
+             background-repeat: no-repeat;
+             background-attachment: fixed;
+             background-position: top right; 
+         }}
+         </style>
+         """,
+        unsafe_allow_html=True,
+    )
+
+
 # endregion
 
 
 def first_run():
     st.set_page_config(layout="wide", initial_sidebar_state="expanded")
     st.session_state.first_run = False
+    st.session_state.use_llm_job_formatter = True
 
     st.session_state.pt = PromptTemplater("./prompts")
 
     # Load the config
     st.session_state.config = load_config("./llm_configurations/llama3.1-8b-free.yml")
-    initialise_llm()
+    initialise_llm("llm", "rag")
+    if st.session_state.use_llm_job_formatter:
+        initialise_llm("job_desc_formatter", "format_job_description")
 
     # Initialise the key objects and session variables
     if "job_url" in st.query_params:
@@ -44,17 +75,17 @@ def first_run():
     st.session_state.message_log = []
 
 
-def initialise_llm():
-    if "llm" in st.session_state:
-        old_knowledge = st.session_state.llm.knowledge
+def initialise_llm(llm_name: str, prompt_template_name: str):
+    if llm_name in st.session_state:
+        old_knowledge = st.session_state[llm_name].knowledge
     else:
         old_knowledge = {}
 
-    st.session_state.llm = LLMwithKnowledge(
+    st.session_state[llm_name] = LLMwithKnowledge(
         model_name=st.session_state.config["model_name"],
         url=st.session_state.config["url"],
         system_prompt=st.session_state.config["system_prompt"],
-        prompt_template=st.session_state.pt.get_prompt("rag"),
+        prompt_template=st.session_state.pt.get_prompt(prompt_template_name),
         knowledge=old_knowledge,
     )
 
@@ -62,6 +93,14 @@ def initialise_llm():
 def initialise_job():
     st.session_state.job = Job(st.session_state.job_url)
     if st.session_state.job.success:
+        if st.session_state.use_llm_job_formatter:
+            st.session_state.unformatted_job_description = (
+                st.session_state.job.job_description
+            )
+            llm_reply = st.session_state["job_desc_formatter"].generate(
+                text_to_format=st.session_state.unformatted_job_description
+            )
+            st.session_state.job.job_description = llm_reply["response"]
         st.session_state.llm.add_to_knowledge(
             {"job description": st.session_state.job.job_description}
         )
@@ -69,11 +108,14 @@ def initialise_job():
 
 def draw_config_buttons():
     config_path = Path("./llm_configurations")
-    configs = config_path.glob("*.yml")
-    for c in configs:
-        if st.button(c):
-            st.session_state.config = load_config(c)
-            initialise_llm()
+    configs = [str(c) for c in config_path.glob("*.yml")]
+    with st.expander(label="Chose LLM configuration", icon="⚙️"):
+        for c in configs:
+            if st.button(c):
+                st.session_state.config = load_config(c)
+                initialise_llm("llm", "rag")
+                if st.session_state.use_llm_job_formatter:
+                    initialise_llm("job_desc_formatter", "format_job_description")
 
 
 def draw_page():
@@ -82,14 +124,26 @@ def draw_page():
 
     st.markdown(css, unsafe_allow_html=True)
 
-    st.markdown(get_page_content("home_introduction"))
-
     with st.sidebar:
+        st.checkbox(
+            label="Format job description using LLM",
+            key="use_llm_job_formatter",
+        )
+        draw_config_buttons()
         with st.expander(label="Current LLM config", icon="🛠️"):
             st.markdown("# Current config")
             st.write(st.session_state.config)
 
-        draw_config_buttons()
+        with st.expander(label="LLM knowledge", icon="🧠"):
+            st.write("")
+            for key, value in st.session_state.llm.knowledge.items():
+                st.write({key: value[:40]})
+
+        # Draw all of session state for debugging
+        # st.write(st.session_state)
+
+    set_bg_hack("logo.png")
+    st.markdown(get_page_content("home_introduction"))
 
     with st.form("joburl"):
         job_url = st.session_state.job_url if "job_url" in st.session_state else ""

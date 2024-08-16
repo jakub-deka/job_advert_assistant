@@ -6,7 +6,7 @@ from colorama import Back, Fore
 prompt_template_provider = PromptTemplater("./prompts")
 config_provider = ConfigProvider("./llm_configurations")
 
-config = config_provider.get_config_from_menu()["llm"]
+config = config_provider.get_config_from_menu()
 
 info = {"my name": "jakub brown", "my age": "38"}
 
