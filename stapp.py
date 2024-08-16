@@ -151,7 +151,7 @@ def draw_page():
             for key, value in st.session_state.llm.knowledge.items():
                 st.write({key: value[:40]})
 
-    set_bg_hack("logo.png")
+    # set_bg_hack("logo.png")
     st.markdown(get_page_content("home_introduction"))
 
     c1, c2, c3 = st.columns(3)
