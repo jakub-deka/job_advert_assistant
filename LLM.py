@@ -169,7 +169,7 @@ class LLMwithKnowledge(LLM):
         self.knowledge = {**self.knowledge, **information}
 
     def reset_knowledge(self):
-        self.knowledge = []
+        self.knowledge = {}
 
     def answer_question(self, question: str, **kwargs):
         """Returns the response from the LLM using knowledge provided.

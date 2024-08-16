@@ -32,3 +32,8 @@ p {
     font-weight: 600 !important;
     font-style: normal !important;
   }
+
+img {
+    float: left;
+    margin: 5px;
+}
