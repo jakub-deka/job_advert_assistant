@@ -129,8 +129,6 @@ def draw_page():
     st.markdown(css, unsafe_allow_html=True)
 
     with st.sidebar:
-        st.image("logo3.png", use_column_width="never")
-
         st.checkbox(
             label="Format job description using LLM",
             key="use_llm_job_formatter",
@@ -152,7 +150,6 @@ def draw_page():
             for key, value in st.session_state.llm.knowledge.items():
                 st.write({key: value[:40]})
 
-    # set_bg_hack("logo.png")
     st.markdown(get_page_content("home_introduction"))
 
     c1, c2, c3 = st.columns(3)
@@ -161,7 +158,6 @@ def draw_page():
         with st.popover(label="Instructions", use_container_width=True):
             st.markdown(get_page_content("home_instructions"))
 
-    # with st.expander(label="Job URL input", expanded=st.session_state.job_url_input_expanded):
     with c2:
         with st.popover(label="Job URL input", use_container_width=True):
             with st.form("joburl", border=False):
