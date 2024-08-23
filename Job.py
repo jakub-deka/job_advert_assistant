@@ -1,3 +1,4 @@
+from multiprocessing import Value
 from haystack import component
 from haystack import Pipeline
 from haystack.dataclasses import ByteStream, Document
@@ -93,10 +94,19 @@ class StrToDocument:
 
 
 class Job:
-    def __init__(self, url: str):
-        self._url = url
-        pipeline = self.construct_fetch_pipeline()
-        self.job_description, self.success = self.run_pipeline(pipeline)
+    def __init__(self, url: str | None = None, job_description: str | None = None):
+        if url is not None:
+            self._url = url
+            pipeline = self.construct_fetch_pipeline()
+            self.job_description, self.success = self.run_pipeline(pipeline)
+        elif job_description is not None:
+            self._url = url
+            self.job_description = job_description
+            self.success = True
+        else:
+            raise ValueError(
+                "You must either provide job description URL or job description"
+            )
 
     def construct_fetch_pipeline(self):
         fetch_pipeline = Pipeline()
@@ -149,4 +159,10 @@ class Job:
         self.job_description, self.success = self.run_pipeline(pipeline)
 
     def __str__(self) -> str:
-        return json.dumps({"url": self.url, "job_description": self.job_description})
+        return json.dumps(
+            {
+                "url": self.url,
+                "job_description": self.job_description,
+                "success": self.success,
+            }
+        )

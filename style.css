@@ -11,8 +11,14 @@
 
 p {
   font-family: 'Verdana' !important;
-  font-size: 16px;
+  font-size: 14px;
+  padding-top: 0rem !important;
+  padding-bottom: 0rem !important;
+  padding-left: 0rem !important;
+  padding-right: 0rem !important;
+  margin: 0px 0px 0px !important;
 }
+
 
 .fixedwidth {
     font-family: "Roboto Mono", monospace !important;

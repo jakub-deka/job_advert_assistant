@@ -7,6 +7,9 @@ from haystack.components.builders import PromptBuilder
 from Utilities import *
 import json
 from haystack.utils import Secret
+from pathlib import Path
+
+# TODO add logging to file
 
 
 class LLM:
@@ -17,6 +20,7 @@ class LLM:
         system_prompt: str = "",
         return_json: bool = False,
         prompt_template: str = "",
+        log_file_path: str | None = None,
     ):
         if len(model_name.split("/")) < 2:
             raise ValueError(
@@ -32,6 +36,13 @@ class LLM:
 
         self.__messages = []
         self.__generation_kwargs = None
+
+        self.log_file_path = log_file_path
+        if self.log_file_path is not None:
+            self.log_file_path = Path(self.log_file_path)
+            self.log_file_path.unlink(missing_ok=True)
+            self.log_file_path.touch()
+            self.append_message_to_log_file("SYSTEM", system_prompt)
 
         if self.__provider == "ollama":
             if return_json:
@@ -71,6 +82,14 @@ class LLM:
             )
             self.__messages.append(ChatMessage.from_system(self.__system_prompt))
 
+    def append_message_to_log_file(self, author: str, message: str):
+        if self.log_file_path is not None:
+            with open(self.log_file_path, "a") as f:
+                f.write(author)
+                f.write("\n------------\n")
+                f.write(message)
+                f.write("\n------------\n")
+
     def reset_memory(self, system_prompt: str | None = None):
         self.__messages = []
         if system_prompt is not None:
@@ -94,6 +113,8 @@ class LLM:
             ChatMessage.from_assistant(response.content, response.meta)
         )
 
+        self.append_message_to_log_file("USER", prompt)
+        self.append_message_to_log_file("ASSISTANT", response.content)
         res = {
             "response": response.content,
             "prompt": prompt,
@@ -158,8 +179,11 @@ class LLMwithKnowledge(LLM):
         url: str | None = None,
         system_prompt: str = "",
         return_json: bool = False,
+        log_file_path: str | None = None,
     ):
-        super().__init__(model_name, url, system_prompt, return_json, prompt_template)
+        super().__init__(
+            model_name, url, system_prompt, return_json, prompt_template, log_file_path
+        )
         self.knowledge = knowledge
         self._prompt_builder = PromptBuilder(
             self.prompt_template, required_variables=["context", "question"]
