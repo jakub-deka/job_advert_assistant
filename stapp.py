@@ -16,6 +16,7 @@ import pandas as pd
 import random
 from LinkedInProfile import *
 
+LOGGING_TO_FILES_ENABLED = False
 
 # region Utilities
 def get_page_content(content_name: str):
@@ -118,6 +119,8 @@ def initialise_llm(
         old_knowledge = {}
 
     if not st.session_state.log_llm_to_file:
+        log_file_path = None
+    elif not LOGGING_TO_FILES_ENABLED:
         log_file_path = None
 
     st.session_state[llm_name] = LLMwithKnowledge(
