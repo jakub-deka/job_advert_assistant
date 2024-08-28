@@ -1,5 +1,6 @@
 # TODO add readme and bookmarklet
 # TODO make a favicon
+# TODO common tasks like writing a cover letter or motivation
 from math import exp
 from re import L
 from click import prompt
@@ -7,11 +8,13 @@ import streamlit as st
 import yaml
 from Job import *
 from LLM import *
+import LinkedInProfile
 from Utilities import *
 import base64
 import json
 import pandas as pd
 import random
+from LinkedInProfile import *
 
 
 # region Utilities
@@ -88,7 +91,6 @@ def run_job_recon_json():
 def run_job_recon():
     with open("./prompts/job_recon.yml", "r") as f:
         job_recon_questions = yaml.safe_load(f.read())
-    print(job_recon_questions)  # TODO Fix job recon questions retrieval.
     initialise_llm(
         "job_recon", "job_recon", log_file_path="./logs/job_recon_verbose.log"
     )
@@ -102,46 +104,6 @@ def run_job_recon():
         responses.append({"question": q, "answer": llm_reply["response"]})
 
     st.session_state.job_recon_verbose = responses
-
-
-# endregion
-
-
-def check_for_job_url_in_query():
-    if "job_url" in st.query_params:
-        st.session_state.job_url = st.query_params.job_url
-        initialise_job()
-
-
-def first_run():
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
-    st.session_state.first_run = False
-    st.session_state.use_llm_job_formatter = False
-    st.session_state.job_url = None
-    st.session_state.input_job_description = None
-    st.session_state.perform_job_recon = True
-    st.session_state.job_recon_type = "Verbose"
-    st.session_state.log_llm_to_file = True
-    
-    logos = list(Path("./logo").glob("*"))
-    st.session_state.logo_path = str(random.choice(logos))
-
-    st.session_state.pt = PromptTemplater("./prompts")
-
-    # Load the config
-    st.session_state.config = load_config("./llm_configurations/llama3.1-8b-free.yml")
-    initialise_llm("llm", "rag", log_file_path="./logs/main_llm.log")
-    if st.session_state.use_llm_job_formatter:
-        initialise_llm(
-            "job_desc_formatter",
-            "format_job_description",
-            log_file_path="./logs/job_desc_formatter.log",
-        )
-
-    # Initialise the key objects and session variables
-    check_for_job_url_in_query()
-
-    st.session_state.message_log = []
 
 
 def initialise_llm(
@@ -200,6 +162,10 @@ def initialise_job():
         st.session_state.llm.add_to_knowledge(
             {"job description": st.session_state.job.job_description}
         )
+        
+        # Clear the chat history
+        st.session_state.message_log = []
+        redraw_chat_history()
     else:
         raise Exception("Something went wrong when creating a job object")
 
@@ -208,7 +174,71 @@ def initialise_job():
             run_job_recon_json()
         else:
             run_job_recon()
-            print(st.session_state.job_recon_verbose)
+
+
+def add_to_llm_context(info: dict[str:str]):
+    st.session_state.llm.add_to_knowledge(info)
+
+
+def add_message_to_chat_history(message: dict[str, str]):
+    with st.session_state.chat_container:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+
+def ask_llm(prompt: str):
+    prompt_dict = {"role": "user", "content": prompt}
+    st.session_state.message_log.append(prompt_dict)
+    add_message_to_chat_history(prompt_dict)
+
+    st.session_state.llm.reset_memory()
+    response = st.session_state.llm.answer_question(prompt)
+    response_dict = {"role": "assistant", "content": response["response"]}
+    st.session_state.message_log.append(response_dict)
+    add_message_to_chat_history(response_dict)
+
+
+def check_for_job_url_in_query():
+    if "job_url" in st.query_params:
+        st.session_state.job_url = st.query_params.job_url
+        initialise_job()
+
+
+# endregion
+
+
+
+
+def first_run():
+    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
+    st.session_state.first_run = False
+    st.session_state.use_llm_job_formatter = False
+    st.session_state.job_url = None
+    st.session_state.input_job_description = None
+    st.session_state.perform_job_recon = True
+    st.session_state.job_recon_type = "Verbose"
+    st.session_state.log_llm_to_file = True
+    
+    logos = list(Path("./logo").glob("*"))
+    st.session_state.logo_path = str(random.choice(logos))
+
+    st.session_state.pt = PromptTemplater("./prompts")
+
+    # Load the config
+    st.session_state.config = load_config("./llm_configurations/llama3.1-8b-free.yml")
+    initialise_llm("llm", "rag", log_file_path="./logs/main_llm.log")
+    if st.session_state.use_llm_job_formatter:
+        initialise_llm(
+            "job_desc_formatter",
+            "format_job_description",
+            log_file_path="./logs/job_desc_formatter.log",
+        )
+
+    # Initialise the key objects and session variables
+    check_for_job_url_in_query()
+
+    st.session_state.message_log = []
+
 
 
 def draw_config_buttons():
@@ -290,7 +320,7 @@ def draw_page():
 
     st.markdown(get_page_content("home_introduction"))
 
-    c1, c2, c2b, c3 = st.columns(4)
+    c1, c2, c2b, c2c, c3 = st.columns(5)
 
     with c1:
         with st.popover(label="Instructions", use_container_width=True):
@@ -310,6 +340,17 @@ def draw_page():
             with st.form("jobdescription", border=False):
                 st.text_area(label="Job description", key="input_job_description")
                 st.form_submit_button(on_click=initialise_job)
+                
+    with c2c:
+        with st.popover(label="Upload your LinkedIn profile", use_container_width=True):
+            st.markdown("Simply head over to LinkedIn and download your profile as pdf.")
+            st.image("./assets/down_as_pdf.png")
+            uploaded_file = st.file_uploader("LinkedIn profile pdf", type=["pdf"])
+            if uploaded_file is not None:
+                my_profile = LinkedInProfile(uploaded_file.getvalue()).profile
+                add_to_llm_context(my_profile)
+                with st.session_state.llm_knowledge_display:
+                    st.write(my_profile)
 
     with c3:
         with st.popover(label="Add information to context", use_container_width=True):
@@ -334,8 +375,6 @@ def draw_page():
         st.write("Provide job url and hit submit to begin.")
 
 
-def add_to_llm_context(info: dict[str:str]):
-    st.session_state.llm.add_to_knowledge(info)
 
 
 def draw_side_questions():
@@ -347,6 +386,7 @@ def draw_side_questions():
     st.markdown("### Quick questions")
 
     qs = [
+        "Considering my profile and skills, am I a good fit for this role? Be brief.",
         "What is the company name and the role title?",
         "What country and city is this role based in?",
         "What is the salary for this role?",
@@ -360,27 +400,10 @@ def draw_side_questions():
 
 
 def redraw_chat_history():
-    with st.session_state.chat_container:
-        for m in st.session_state.message_log:
-            add_message_to_chat_history(m)
-
-
-def add_message_to_chat_history(message: dict[str, str]):
-    with st.session_state.chat_container:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-
-def ask_llm(prompt: str):
-    prompt_dict = {"role": "user", "content": prompt}
-    st.session_state.message_log.append(prompt_dict)
-    add_message_to_chat_history(prompt_dict)
-
-    st.session_state.llm.reset_memory()
-    response = st.session_state.llm.answer_question(prompt)
-    response_dict = {"role": "assistant", "content": response["response"]}
-    st.session_state.message_log.append(response_dict)
-    add_message_to_chat_history(response_dict)
+    if "chat_container" in st.session_state:
+        with st.session_state.chat_container:
+            for m in st.session_state.message_log:
+                add_message_to_chat_history(m)
 
 
 def draw_chat_ui():

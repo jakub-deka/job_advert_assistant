@@ -6,3 +6,4 @@ colorama
 tiktoken
 simple-term-menu
 streamlit
+pypdf
