@@ -1,0 +1,5 @@
+display_name: llama3.1
+model_name: openrouter/mattshumer/reflection-70b:free
+system_prompt: "You are a helpful assistant and you follow to the letter every instruction given."
+prompt_template_path: "./prompts/rag.md"
+url: "https://openrouter.ai/api/v1"

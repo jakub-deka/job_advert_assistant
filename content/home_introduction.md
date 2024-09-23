@@ -1,3 +1,7 @@
-# Job advert analysis robot
+## How does it work
 
-Use Large Language Models to help you extract key information from a job posting and answer questions using natural language. Ask the LLM what is the salary or where is the office located!
+This tool combines some components from Haystack and OpenRouter with custom code and templates written by me to automate common tasks associated with analysing a job description.
+
+## Instructions
+
+Simply follow the two steps below to get started.

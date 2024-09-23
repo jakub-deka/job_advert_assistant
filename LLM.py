@@ -1,3 +1,4 @@
+from email import message
 from haystack_integrations.components.generators.ollama import OllamaChatGenerator
 from haystack.components.generators.chat import OpenAIChatGenerator
 from typing import Any
@@ -9,8 +10,6 @@ import json
 from haystack.utils import Secret
 from pathlib import Path
 
-# TODO add logging to file
-
 
 class LLM:
     def __init__(
@@ -21,6 +20,7 @@ class LLM:
         return_json: bool = False,
         prompt_template: str = "",
         log_file_path: str | None = None,
+        messages: list[ChatMessage] | None = None,
     ):
         if len(model_name.split("/")) < 2:
             raise ValueError(
@@ -34,7 +34,11 @@ class LLM:
         self.__prompt_template = prompt_template
         self.__prompt_builder = PromptBuilder(template=self.__prompt_template)
 
-        self.__messages = []
+        if messages is None:
+            self.__messages = []
+        else:
+            self.__messages = messages
+
         self.__generation_kwargs = None
 
         self.log_file_path = log_file_path
@@ -180,9 +184,16 @@ class LLMwithKnowledge(LLM):
         system_prompt: str = "",
         return_json: bool = False,
         log_file_path: str | None = None,
+        messages: list[ChatMessage] | None = None,
     ):
         super().__init__(
-            model_name, url, system_prompt, return_json, prompt_template, log_file_path
+            model_name,
+            url,
+            system_prompt,
+            return_json,
+            prompt_template,
+            log_file_path,
+            messages,
         )
         self.knowledge = knowledge
         self._prompt_builder = PromptBuilder(

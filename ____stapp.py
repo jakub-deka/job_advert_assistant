@@ -1,6 +1,10 @@
 # TODO add readme and bookmarklet
 # TODO make a favicon
 # TODO common tasks like writing a cover letter or motivation
+# TODO fix issue where the dictionaries are not merged in llm knowledge
+# TODO fix issue where profile seems to be added more than once to the knowledge
+# TODO fix job recon running when profile is added without a job
+# TODO split this into 2 pages - one for inputs and one to interacti with the chatbot
 from math import exp
 from re import L
 from click import prompt
@@ -181,6 +185,8 @@ def initialise_job():
 
 def add_to_llm_context(info: dict[str:str]):
     st.session_state.llm.add_to_knowledge(info)
+    with st.session_state.llm_knowledge_display:
+        st.write(info)
 
 
 def add_message_to_chat_history(message: dict[str, str]):
@@ -221,6 +227,7 @@ def first_run():
     st.session_state.perform_job_recon = True
     st.session_state.job_recon_type = "Verbose"
     st.session_state.log_llm_to_file = True
+    st.session_state.llm_knowledge_display = st.empty()
     
     logos = list(Path("./logo").glob("*"))
     st.session_state.logo_path = str(random.choice(logos))
@@ -352,8 +359,7 @@ def draw_page():
             if uploaded_file is not None:
                 my_profile = LinkedInProfile(uploaded_file.getvalue()).profile
                 add_to_llm_context(my_profile)
-                with st.session_state.llm_knowledge_display:
-                    st.write(my_profile)
+                
 
     with c3:
         with st.popover(label="Add information to context", use_container_width=True):
@@ -365,8 +371,8 @@ def draw_page():
                 submit = st.form_submit_button()
                 if submit:
                     add_to_llm_context({additional_info_label: additional_info})
-                    with st.session_state.llm_knowledge_display:
-                        st.write({additional_info_label: additional_info[:40]})
+                    # with st.session_state.llm_knowledge_display:
+                        # st.write({additional_info_label: additional_info[:40]})
 
     if "job description" in st.session_state.llm.knowledge:
         draw_chat_ui()

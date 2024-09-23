@@ -14,11 +14,10 @@ class LinkedInProfile:
         """
         c = PyPDFToDocument()
         if isinstance(pdf_path, str):
-            input = Path(pdf_path)
+            input = [Path(pdf_path)]
         elif isinstance(pdf_path, Path):
             input = [pdf_path]
         else:
-            print("Using bytestream")
             input = [ByteStream(pdf_path)]
 
         self.profile_raw = c.run(sources=input)["documents"][0].content

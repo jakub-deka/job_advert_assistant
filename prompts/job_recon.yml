@@ -1,6 +1,7 @@
 questions:
   - What is the job title?
-  - What is the name of the company?
+  - What is the name of the company hiring?
+  - What is the name of the hiring manager?
   - What is the location of this role? List all locations.
   - Is this job a remote, hybrid, or on site job? List all.
   - What is the salary for this job?
