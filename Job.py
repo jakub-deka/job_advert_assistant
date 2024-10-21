@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 import re
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
+from more_itertools import strip
 from LLM import *
 
 
@@ -94,21 +95,40 @@ class StrToDocument:
 
 
 class Job:
-    def __init__(self, url: str | None = None, job_description: str | None = None):
+    def __init__(
+        self,
+        url: str | None = None,
+        job_description: str | None = None,
+        strip_selectors: list[str] = ["script", "style", "link", "noscript"],
+        compatibility_mode: bool = False,
+    ):
         if url is not None:
             self._url = url
-            pipeline = self.construct_fetch_pipeline()
-            self.job_description, self.success = self.run_pipeline(pipeline)
+            self.success = False
+
+            if not compatibility_mode:
+                pipeline = self.construct_fetch_pipeline(strip_selectors)
+                self.job_description, self.success = self.run_pipeline(pipeline)
+                if self.success:
+                    self.pull_mode = "default"
+
+            if compatibility_mode or not self.success:
+                self.pull_mode = "compatibility"
+                pipeline = self.construct_fetch_pipeline(strip_selectors=[])
+                self.job_description, self.success = self.run_pipeline(pipeline)
         elif job_description is not None:
             self._url = url
             self.job_description = job_description
             self.success = True
+            self.pull_mode = "description"
         else:
             raise ValueError(
                 "You must either provide job description URL or job description"
             )
 
-    def construct_fetch_pipeline(self):
+    def construct_fetch_pipeline(
+        self, strip_selectors: list[str] = ["script", "style", "link", "noscript"]
+    ):
         fetch_pipeline = Pipeline()
         chrome_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
         fetch_pipeline.add_component(
@@ -116,7 +136,7 @@ class Job:
         )
         fetch_pipeline.add_component(
             "clean_html",
-            HtmlCleaner(strip_selectors=["script", "style", "link", "noscript"]),
+            HtmlCleaner(strip_selectors=strip_selectors),
         )
         fetch_pipeline.add_component("to_md", HtmlToMarkdown(md_convert=["meta"]))
         fetch_pipeline.add_component(
@@ -137,10 +157,10 @@ class Job:
 
     def run_pipeline(self, pipeline):
         try:
-            success = True
-            res = pipeline.run(data={"fetch": {"urls": [self.url]}})["clean"][
+            res = pipeline.run(data={"fetch": {"urls": [self._url]}})["clean"][
                 "documents"
             ][0].content
+            success = True if len(res) >= 25 else False
         except Exception as e:
             success = False
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
@@ -148,21 +168,15 @@ class Job:
 
         return res, success
 
-    @property
-    def url(self):
-        return self._url
-
-    @url.setter
-    def url(self, value: str):
-        self._url = value
-        pipeline = self.construct_fetch_pipeline()
-        self.job_description, self.success = self.run_pipeline(pipeline)
-
     def __str__(self) -> str:
         return json.dumps(
             {
-                "url": self.url,
+                "url": self._url,
+                "pull_model": self.pull_mode,
                 "job_description": self.job_description,
                 "success": self.success,
             }
         )
+
+    def __repr__(self) -> str:
+        return f"Job(url={self._url}, pull_mode={self.pull_mode}, success={self.success}, job_description={self.job_description})"

@@ -10,7 +10,10 @@ You will be given a job description below and a number of questions. Consider th
 
 For each question construct an answer in no more than {{ number_of_words }} words.
 
-Print the question and corresponding answer.
+Print the question and corresponding answer. Add ":orange" in front of the question and wrap it in square brackets. Add ":blue" in front of the answer and wrap the answer in square brackets.
+
+For example:
+:orange[What is the job title?] :blue[Head of data science]
 
 Do not write an introduction or summary.
 

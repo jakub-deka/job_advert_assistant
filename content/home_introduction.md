@@ -1,3 +1,5 @@
+Use LLM to help you make sifting through a job description faster and easier.
+
 ## How does it work
 
 This tool combines some components from Haystack and OpenRouter with custom code and templates written by me to automate common tasks associated with analysing a job description.

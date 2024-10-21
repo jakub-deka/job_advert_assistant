@@ -1,11 +1,24 @@
-# current_llm_config: "llama3.1-8b-free"
-current_llm_config: "reflection-70B"
+current_llm_config: "llama3.1-8b-free"
+# current_llm_config: "hermes-3-llama-3.1-405b"
 keep_chat_history_when_changing_llms: True
 # current_llm_config: "phi-3-med-free"
 log_llm_prompts_to_file: True
-use_llm_job_description_formatter: False
+use_llm_job_description_formatter: True
 job_recon_style: verbose_bulk # either "json", "verbose", "verbose_bulk", or "off"
 reset_llm_memory_between_questions: True
+writing_check_accuracy: True
+writing_check_llm: True
+bypass_profile_check: False
 faqs:
+  - "What is the job title?"
   - "What is the job salary for this role?"
   - "What is the job location?"
+  - "List all benefits for this role."
+  - "Is this role remote, hybrid, or office based?"
+  - "How many days per week would I be expected to come to the office?"
+  - "Does this role have any direct reports?"
+writing_prompts:
+  - "Write an engaging cover letter that demonstrates my skills that are relevant to this role."
+  - "Write a short message to the recruiter expressing my interest in this role."
+  - "Write in 60 words why I am the perfect candidate for this position."
+  - "List my relevant skills for this position."
