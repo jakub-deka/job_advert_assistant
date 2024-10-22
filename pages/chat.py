@@ -1,5 +1,3 @@
-from cProfile import label
-import hashlib
 from platform import system
 import streamlit as st
 from Job import *
@@ -7,10 +5,8 @@ from LLM import LLMwithKnowledge
 from Utilities import PromptTemplater
 from stutils import *
 from pathlib import Path
-import yaml
 import json
 import pandas as pd
-import copy
 
 
 def fake_home_entry():

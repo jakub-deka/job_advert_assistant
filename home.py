@@ -1,12 +1,8 @@
-from turtle import heading
-from click import clear
-from requests import Session
 import streamlit as st
 from Job import *
 from Utilities import *
 from LinkedInProfile import *
 from stutils import *
-import ast
 
 
 def first_run():
